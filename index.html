@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeCurve - Explorando Tipografia e Curvas de Bézier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 4rem 2rem;
+        }
+
+        #hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #heroCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .hero-content h1 {
+            font-size: 5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 20px rgba(0,0,0,0.3);
+        }
+
+        .hero-content p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .btn {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .content-box {
+            max-width: 1200px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .glass-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .formula {
+            background: rgba(102,126,234,0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .params-display {
+            background: rgba(102,126,234,0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .params-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .param-item {
+            padding: 0.5rem;
+        }
+
+        .param-label {
+            color: #667eea;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .param-value {
+            color: #4ecdc4;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .param-value.highlight {
+            color: #ff6b6b;
+        }
+
+        canvas {
+            border-radius: 15px;
+            background: rgba(0,0,0,0.3);
+            margin: 2rem 0;
+            display: block;
+            max-width: 100%;
+        }
+
+        .letter-gallery {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            padding: 2rem 0;
+            scroll-behavior: smooth;
+        }
+
+        .letter-card {
+            min-width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .letter-card:hover, .letter-card.active {
+            transform: scale(1.05);
+            background: rgba(102,126,234,0.2);
+            border-color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 0.8rem 1.5rem;
+            background: rgba(102,126,234,0.2);
+            border: 1px solid #667eea;
+            color: white;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover, .control-btn.active {
+            background: #667eea;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-item {
+            text-align: center;
+        }
+
+        .comparison-item h3 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .zoom-level {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            background: rgba(0,0,0,0.5);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-tip {
+            font-size: 0.95rem;
+            margin-top: 1rem;
+            opacity: 0.7;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(76,209,196,0.1);
+            border-radius: 10px;
+            border-left: 3px solid #4ecdc4;
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 3rem;
+            }
+            h2 {
+                font-size: 2rem;
+            }
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            .params-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section id="hero" class="section">
+        <canvas id="heroCanvas"></canvas>
+        <div class="hero-content">
+            <h1>Bem-vindo ao TypeCurve</h1>
+            <p>Explore a matemática por trás da tipografia através de curvas de Bézier e cálculo</p>
+            <button class="btn" onclick="scrollToNext()">Explorar</button>
+        </div>
+    </section>
+
+    <!-- Transformações Tipográficas -->
+    <section class="section">
+        <div class="content-box glass-card">
+            <h2>Transformações Paramétricas em Tipografia</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">
+                Em Cálculo 2, aprendemos que curvas podem ser descritas por <strong>funções paramétricas</strong>, 
+                onde cada coordenada (x, y) é uma função de um parâmetro <strong>t</strong>. Designers de fontes 
+                usam isso para criar diferentes estilos da mesma letra!
+            </p>
+            <div class="formula">
+                x'(t) = x(t) × largura + y(t) × inclinação<br>
+                y'(t) = y(t) × peso<br>
+                onde cada transformação mantém t ∈ [0, 1]
+            </div>
+            
+            <div style="background: rgba(76,209,196,0.15); padding: 1.5rem; border-radius: 10px; margin: 1.5rem 0; border-left: 4px solid #4ecdc4;">
+                <p style="font-size: 1.1rem; margin-bottom: 0.8rem;">
+                    <strong>Como funciona?</strong>
+                </p>
+                <p style="font-size: 1rem; line-height: 1.6;">
+                    Cada ponto da letra é definido por <strong>x(t)</strong> e <strong>y(t)</strong>. 
+                    Ao multiplicar essas funções por fatores de escala e adicionar inclinação, 
+                    criamos <strong>Regular → Bold → Italic → Condensed</strong> matematicamente!
+                </p>
+            </div>
+            
+            <p style="font-size: 1.1rem; margin-top: 1.5rem;">
+                <strong>Experimente:</strong> Use os controles abaixo para ver como transformações paramétricas 
+                criam diferentes estilos de fonte. Cada ajuste modifica a equação paramétrica da letra!
+            </p>
+            
+            <div class="controls">
+                <button class="control-btn active" onclick="setFontStyle('regular')">Regular</button>
+                <button class="control-btn" onclick="setFontStyle('bold')">Bold</button>
+                <button class="control-btn" onclick="setFontStyle('italic')">Italic</button>
+                <button class="control-btn" onclick="setFontStyle('condensed')">Condensed</button>
+                <button class="control-btn" onclick="setFontStyle('expanded')">Expanded</button>
+            </div>
+
+            <div style="margin: 2rem 0;">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #667eea; font-weight: bold;">
+                        📏 Largura (escala em X): <span id="widthValue">100</span>%
+                    </label>
+                    <input type="range" id="widthSlider" min="50" max="150" value="100" 
+                           style="width: 100%; height: 8px; border-radius: 5px; background: rgba(102,126,234,0.3);">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #667eea; font-weight: bold;">
+                        Peso/Espessura (escala em Y): <span id="weightValue">100</span>%
+                    </label>
+                    <input type="range" id="weightSlider" min="50" max="200" value="100"
+                           style="width: 100%; height: 8px; border-radius: 5px; background: rgba(102,126,234,0.3);">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #667eea; font-weight: bold;">
+                        Inclinação (shear/skew): <span id="slantValue">0</span>°
+                    </label>
+                    <input type="range" id="slantSlider" min="-30" max="30" value="0"
+                           style="width: 100%; height: 8px; border-radius: 5px; background: rgba(102,126,234,0.3);">
+                </div>
+            </div>
+            
+            <div class="params-display">
+                <div class="params-grid">
+                    <div class="param-item">
+                        <span class="param-label"> Estilo atual:</span>
+                        <span class="param-value highlight" id="currentStyle">Regular</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label"> Fator largura:</span>
+                        <span class="param-value" id="widthFactor">1.00</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label"> Fator peso:</span>
+                        <span class="param-value" id="weightFactor">1.00</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label"> Ângulo inclinação:</span>
+                        <span class="param-value highlight" id="slantAngle">0°</span>
+                    </div>
+                </div>
+                <div style="padding-top: 1rem; border-top: 1px solid rgba(102,126,234,0.3);">
+                    <span class="param-label"> Equação aplicada:</span><br>
+                    <span style="color: #4ecdc4; font-size: 0.95rem; font-family: monospace;" id="equationDisplay">
+                        x'(t) = x(t) × 1.00 + y(t) × 0.00 | y'(t) = y(t) × 1.00
+                    </span>
+                </div>
+            </div>
+            
+            <canvas id="parametricCanvas" width="800" height="500"></canvas>
+            <p class="info-tip">
+                💡 <strong>Aplicação real:</strong> Fontes variáveis (Variable Fonts) usam exatamente esse princípio! 
+                Um único arquivo .ttf contém múltiplos estilos e você pode interpolar entre eles em tempo real. 
+                Exemplos: Inter, Roboto Flex, Source Sans Variable.
+            </p>
+        </div>
+    </section>
+
+    <!-- Curvatura e Vetor Tangente -->
+    <section class="section">
+        <div class="content-box glass-card">
+            <h2>Curvatura & Vetor Tangente</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">
+                O <strong>vetor tangente</strong> T(t) = (x'(t), y'(t)) indica a direção e velocidade da curva em cada ponto.
+                É como se fosse a "seta de movimento" que mostra para onde a curva está indo.
+            </p>
+            <div class="formula">
+                T(t) = (dx/dt, dy/dt)<br>
+                κ(t) = |T'(t)| = curvatura (o quanto a curva "vira")
+            </div>
+            <p style="font-size: 1.1rem; margin-top: 1rem;">
+                <strong>Observe:</strong> O ponto roxo percorre a curva e a seta vermelha mostra o vetor tangente em cada posição.
+            </p>
+            
+            <div class="params-display">
+                <div class="params-grid">
+                    <div class="param-item">
+                        <span class="param-label">Posição na curva (t):</span>
+                        <span class="param-value" id="tangentT">0.00</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Ângulo da tangente:</span>
+                        <span class="param-value" id="tangentAngle">0°</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Coordenada X:</span>
+                        <span class="param-value highlight" id="tangentX">0</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Coordenada Y:</span>
+                        <span class="param-value highlight" id="tangentY">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <canvas id="tangentCanvas" width="800" height="400"></canvas>
+            <p class="info-tip">
+                💡 Vetores tangentes são essenciais para criar transições suaves entre curvas em letras. 
+                Quando dois segmentos têm tangentes alinhadas, a junção fica imperceptível!
+            </p>
+        </div>
+    </section>
+
+    <!-- Como as Letras São Feitas -->
+    <section class="section">
+        <div class="content-box glass-card">
+            <h2>Como as Letras São Feitas</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">
+                Fontes digitais usam <strong>curvas de Bézier cúbicas</strong> para definir cada letra. 
+                Uma curva de Bézier é definida por 4 pontos de controle: 2 âncoras (roxo) e 2 controladores (vermelho).
+            </p>
+            <div class="formula">
+                B(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃<br>
+                onde t ∈ [0, 1]
+            </div>
+            <p style="font-size: 1.1rem; margin-top: 1rem;">
+                <strong>P₀ e P₃</strong> = pontos âncora (por onde a curva passa)<br>
+                <strong>P₁ e P₂</strong> = pontos de controle (definem a curvatura)
+            </p>
+            
+            <div class="controls">
+                <button class="control-btn active" onclick="togglePoints()">Mostrar Pontos</button>
+                <button class="control-btn" onclick="toggleTangents()">Mostrar Tangentes</button>
+                <button class="control-btn" onclick="toggleEquations()">Mostrar Equações</button>
+            </div>
+            
+            <div class="params-display" id="bezierParams" style="display: none;">
+                <div class="params-grid">
+                    <div class="param-item">
+                        <span class="param-label">Número de curvas:</span>
+                        <span class="param-value" id="numCurves">3</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Pontos de controle:</span>
+                        <span class="param-value" id="numPoints">12</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Grau do polinômio:</span>
+                        <span class="param-value">3 (cúbica)</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Continuidade:</span>
+                        <span class="param-value highlight">C²</span>
+                    </div>
+                </div>
+            </div>
+            
+            <canvas id="letterCanvas" width="800" height="500"></canvas>
+            <p class="info-tip">
+                💡 Cada letra em uma fonte pode ter dezenas ou centenas de curvas de Bézier. 
+                A letra "a" minúscula pode ter 6-8 curvas, enquanto um "@" pode ter mais de 20!
+            </p>
+        </div>
+    </section>
+
+    <!-- Galeria de Letras -->
+    <section class="section">
+        <div class="content-box glass-card">
+            <h2>Galeria: Outras Letras</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">
+                Cada letra do alfabeto tem sua própria complexidade. Letras retas como "I" ou "L" são simples, 
+                mas letras curvas como "S" ou "g" exigem dezenas de pontos de controle perfeitamente posicionados.
+            </p>
+            <p style="font-size: 1.1rem; margin-bottom: 2rem;">
+                <strong>Clique em uma letra</strong> para ver como ela seria renderizada:
+            </p>
+            
+            <div class="letter-gallery">
+                <div class="letter-card active" onclick="selectLetter('A', this)">A</div>
+                <div class="letter-card" onclick="selectLetter('B', this)">B</div>
+                <div class="letter-card" onclick="selectLetter('S', this)">S</div>
+                <div class="letter-card" onclick="selectLetter('g', this)">g</div>
+                <div class="letter-card" onclick="selectLetter('R', this)">R</div>
+                <div class="letter-card" onclick="selectLetter('Q', this)">Q</div>
+            </div>
+            
+            <div class="params-display">
+                <div class="params-grid">
+                    <div class="param-item">
+                        <span class="param-label">Letra selecionada:</span>
+                        <span class="param-value" id="selectedLetter">A</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Complexidade:</span>
+                        <span class="param-value highlight" id="letterComplexity">Média</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Tamanho do arquivo:</span>
+                        <span class="param-value" id="letterSize">~2KB</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Tempo de render:</span>
+                        <span class="param-value highlight" id="renderTime">&lt;1ms</span>
+                    </div>
+                </div>
+            </div>
+            
+            <canvas id="galleryCanvas" width="800" height="500"></canvas>
+            <p class="info-tip">
+                💡 Uma fonte completa (Regular, Bold, Italic, Bold Italic) pode conter 500-1000 glifos 
+                (letras, números, símbolos) e ocupar apenas 100-300KB de espaço!
+            </p>
+        </div>
+    </section>
+
+    <!-- Zoom Infinito -->
+    <section class="section">
+        <div class="content-box glass-card">
+            <h2>Zoom Infinito</h2>
+            <div class="zoom-level" id="zoomLevel">100%</div>
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">
+                Esta é a grande vantagem dos gráficos vetoriais: <strong>resolução infinita</strong>. 
+                Como as curvas são definidas por equações matemáticas, elas podem ser recalculadas em qualquer escala.
+            </p>
+            <p style="font-size: 1.1rem; margin-bottom: 2rem;">
+                <strong>Role o mouse</strong> sobre o canvas para dar zoom. Observe que a curva permanece perfeitamente suave!
+            </p>
+            
+            <div class="params-display">
+                <div class="params-grid">
+                    <div class="param-item">
+                        <span class="param-label">Nível de zoom:</span>
+                        <span class="param-value highlight" id="zoomPercent">100%</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Escala atual:</span>
+                        <span class="param-value" id="zoomScale">1.0x</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Pontos calculados:</span>
+                        <span class="param-value" id="pointsCalc">100</span>
+                    </div>
+                    <div class="param-item">
+                        <span class="param-label">Qualidade:</span>
+                        <span class="param-value highlight">Perfeita ✓</span>
+                    </div>
+                </div>
+            </div>
+            
+            <canvas id="zoomCanvas" width="800" height="500"></canvas>
+            <p class="info-tip">
+                💡 É por isso que você pode imprimir um PDF em qualquer tamanho (cartão de visita ou banner gigante) 
+                e o texto sempre fica nítido. As curvas são recalculadas para a resolução da impressora!
+            </p>
+        </div>
+    </section>
+
+    <!-- Comparação Vetor vs Raster -->
+    <section class="section">
+        <div class="content-box glass-card">
+            <h2>PDFs e Fontes Não Perdem Qualidade</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">
+                Compare os dois métodos de representação gráfica. À esquerda, uma imagem <strong>raster</strong> 
+                (baseada em pixels). À direita, a mesma letra em formato <strong>vetorial</strong> (baseada em equações).
+            </p>
+            <div class="formula">
+                Raster: array de pixels [R,G,B,A] × largura × altura<br>
+                Vetor: lista de equações de Bézier {P₀, P₁, P₂, P₃}
+            </div>
+            
+            <div class="params-display">
+                <div style="text-align: center; padding: 1rem;">
+                    <span class="param-label">Zoom aplicado nas duas versões:</span>
+                    <span class="param-value highlight" id="comparisonZoom">200%</span>
+                </div>
+            </div>
+            
+            <div class="comparison">
+                <div class="comparison-item">
+                    <h3>1Raster (Pixels)</h3>
+                    <canvas id="rasterCanvas" width="400" height="300"></canvas>
+                    <p style="margin-top: 1rem; font-size: 0.9rem;">
+                        Pixelado ao ampliar<br>
+                        Tamanho: ~50KB<br>
+                        Render: rápido mas fixo
+                    </p>
+                </div>
+                <div class="comparison-item">
+                    <h3>Vetor (Curvas)</h3>
+                    <canvas id="vectorCanvas" width="400" height="300"></canvas>
+                    <p style="margin-top: 1rem; font-size: 0.9rem;">
+                        Sempre perfeito<br>
+                        Tamanho: ~2KB<br>
+                        Render: calculado em tempo real
+                    </p>
+                </div>
+            </div>
+            <p class="info-tip">
+                💡 Formatos vetoriais: SVG, PDF, EPS, AI, fontes TTF/OTF<br>
+                💡 Formatos raster: PNG, JPG, GIF, BMP, WebP
+            </p>
+        </div>
+    </section>
+
+    <!-- Final -->
+    <section class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="content-box glass-card" style="text-align: center;">
+            <h2 style="background: none; -webkit-text-fill-color: white; font-size: 3.5rem;">Matemática é Arte</h2>
+            <p style="font-size: 1.5rem; margin: 2rem 0; line-height: 1.6;">
+                Cada letra que você lê é uma obra-prima de cálculo e geometria. 
+                A beleza da tipografia vive na precisão matemática das curvas de Bézier.
+            </p>
+            <div style="background: rgba(0,0,0,0.2); padding: 2rem; border-radius: 15px; margin: 2rem 0;">
+                <p style="font-size: 1.2rem; margin-bottom: 1rem;">
+                    <strong>Conceitos aprendidos:</strong>
+                </p>
+                <p style="font-size: 1.1rem; line-height: 1.8;">
+                    ✓ Curvas paramétricas x(t), y(t)<br>
+                    ✓ Vetores tangentes e derivadas<br>
+                    ✓ Curvas de Bézier cúbicas<br>
+                    ✓ Gráficos vetoriais vs raster<br>
+                    ✓ Aplicações práticas em tipografia digital
+                </p>
+            </div>
+            <button class="btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑ Voltar ao Início</button>
+        </div>
+    </section>
+
+    <script>
+        // Estado global
+        let showPoints = true;
+        let showTangents = false;
+        let showEquations = false;
+        let currentLetter = 'A';
+        let zoomLevel = 1;
+
+        // Hero Animation
+        const heroCanvas = document.getElementById('heroCanvas');
+        const heroCtx = heroCanvas.getContext('2d');
+        heroCanvas.width = window.innerWidth;
+        heroCanvas.height = window.innerHeight;
+
+        function animateHero() {
+            heroCtx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+            const time = Date.now() * 0.001;
+            
+            heroCtx.strokeStyle = 'rgba(255,255,255,0.5)';
+            heroCtx.lineWidth = 3;
+            heroCtx.beginPath();
+            
+            for (let i = 0; i < heroCanvas.width; i += 5) {
+                const t = i / heroCanvas.width;
+                const x = i;
+                const y = heroCanvas.height / 2 + Math.sin(t * 10 + time) * 100 * Math.sin(time * 0.5);
+                
+                if (i === 0) heroCtx.moveTo(x, y);
+                else heroCtx.lineTo(x, y);
+            }
+            
+            heroCtx.stroke();
+            requestAnimationFrame(animateHero);
+        }
+        animateHero();
+
+        // Transformações Tipográficas
+        const paramCanvas = document.getElementById('parametricCanvas');
+        const paramCtx = paramCanvas.getContext('2d');
+        
+        let widthScale = 1.0;
+        let weightScale = 1.0;
+        let slant = 0;
+
+        // Event listeners para os sliders
+        const widthSlider = document.getElementById('widthSlider');
+        const weightSlider = document.getElementById('weightSlider');
+        const slantSlider = document.getElementById('slantSlider');
+
+        widthSlider.addEventListener('input', (e) => {
+            widthScale = e.target.value / 100;
+            document.getElementById('widthValue').textContent = e.target.value;
+            document.getElementById('widthFactor').textContent = widthScale.toFixed(2);
+            updateEquation();
+            drawTypography();
+        });
+
+        weightSlider.addEventListener('input', (e) => {
+            weightScale = e.target.value / 100;
+            document.getElementById('weightValue').textContent = e.target.value;
+            document.getElementById('weightFactor').textContent = weightScale.toFixed(2);
+            updateEquation();
+            drawTypography();
+        });
+
+        slantSlider.addEventListener('input', (e) => {
+            slant = parseFloat(e.target.value);
+            document.getElementById('slantValue').textContent = e.target.value;
+            document.getElementById('slantAngle').textContent = e.target.value + '°';
+            updateEquation();
+            drawTypography();
+        });
+
+        function setFontStyle(style) {
+            // Remove active de todos os botões
+            document.querySelectorAll('.controls .control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Adiciona active no botão clicado
+            event.target.classList.add('active');
+            
+            document.getElementById('currentStyle').textContent = style.charAt(0).toUpperCase() + style.slice(1);
+            
+            switch(style) {
+                case 'regular':
+                    widthScale = 1.0;
+                    weightScale = 1.0;
+                    slant = 0;
+                    widthSlider.value = 100;
+                    weightSlider.value = 100;
+                    slantSlider.value = 0;
+                    break;
+                case 'bold':
+                    widthScale = 1.1;
+                    weightScale = 1.5;
+                    slant = 0;
+                    widthSlider.value = 110;
+                    weightSlider.value = 150;
+                    slantSlider.value = 0;
+                    break;
+                case 'italic':
+                    widthScale = 1.0;
+                    weightScale = 1.0;
+                    slant = 15;
+                    widthSlider.value = 100;
+                    weightSlider.value = 100;
+                    slantSlider.value = 15;
+                    break;
+                case 'condensed':
+                    widthScale = 0.7;
+                    weightScale = 1.0;
+                    slant = 0;
+                    widthSlider.value = 70;
+                    weightSlider.value = 100;
+                    slantSlider.value = 0;
+                    break;
+                case 'expanded':
+                    widthScale = 1.3;
+                    weightScale = 1.0;
+                    slant = 0;
+                    widthSlider.value = 130;
+                    weightSlider.value = 100;
+                    slantSlider.value = 0;
+                    break;
+            }
+            
+            document.getElementById('widthValue').textContent = Math.round(widthScale * 100);
+            document.getElementById('weightValue').textContent = Math.round(weightScale * 100);
+            document.getElementById('slantValue').textContent = slant;
+            document.getElementById('widthFactor').textContent = widthScale.toFixed(2);
+            document.getElementById('weightFactor').textContent = weightScale.toFixed(2);
+            document.getElementById('slantAngle').textContent = slant + '°';
+            
+            updateEquation();
+            drawTypography();
+        }
+
+        function updateEquation() {
+            const slantFactor = (slant * Math.PI / 180).toFixed(2);
+            document.getElementById('equationDisplay').textContent = 
+                `x'(t) = x(t) × ${widthScale.toFixed(2)} + y(t) × ${slantFactor} | y'(t) = y(t) × ${weightScale.toFixed(2)}`;
+        }
+
+        function drawTypography() {
+            paramCtx.clearRect(0, 0, paramCanvas.width, paramCanvas.height);
+            
+            paramCtx.save();
+            
+            // Centraliza
+            paramCtx.translate(paramCanvas.width / 2, paramCanvas.height / 2);
+            
+            // Aplica transformações paramétricas
+            paramCtx.transform(widthScale, 0, Math.tan(slant * Math.PI / 180), weightScale, 0, 0);
+            
+            // Desenha a letra 'A'
+            paramCtx.fillStyle = '#667eea';
+            paramCtx.strokeStyle = '#764ba2';
+            paramCtx.lineWidth = 3 / Math.max(widthScale, weightScale);
+            paramCtx.font = 'bold 200px Arial';
+            paramCtx.textAlign = 'center';
+            paramCtx.textBaseline = 'middle';
+            
+            // Outline
+            paramCtx.strokeText('A', 0, 0);
+            // Fill
+            paramCtx.fillText('A', 0, 0);
+            
+            paramCtx.restore();
+            
+            // Desenha grid de referência
+            paramCtx.strokeStyle = 'rgba(102,126,234,0.2)';
+            paramCtx.lineWidth = 1;
+            
+            // Linha vertical central
+            paramCtx.beginPath();
+            paramCtx.moveTo(paramCanvas.width / 2, 0);
+            paramCtx.lineTo(paramCanvas.width / 2, paramCanvas.height);
+            paramCtx.stroke();
+            
+            // Linha horizontal central
+            paramCtx.beginPath();
+            paramCtx.moveTo(0, paramCanvas.height / 2);
+            paramCtx.lineTo(paramCanvas.width, paramCanvas.height / 2);
+            paramCtx.stroke();
+        }
+        
+        drawTypography();
+        updateEquation();
+
+        // Vetor Tangente
+        const tangentCanvas = document.getElementById('tangentCanvas');
+        const tangentCtx = tangentCanvas.getContext('2d');
+        let tangentT = 0;
+
+        function drawTangent() {
+            tangentCtx.clearRect(0, 0, tangentCanvas.width, tangentCanvas.height);
+            
+            const centerX = tangentCanvas.width / 2;
+            const centerY = tangentCanvas.height / 2;
+            const radius = 120;
+            
+            // Desenha a curva
+            tangentCtx.strokeStyle = '#667eea';
+            tangentCtx.lineWidth = 3;
+            tangentCtx.beginPath();
+            
+            for (let t = 0; t <= 1; t += 0.01) {
+                const angle = t * Math.PI * 2;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius * 0.6;
+                
+                if (t === 0) tangentCtx.moveTo(x, y);
+                else tangentCtx.lineTo(x, y);
+            }
+            tangentCtx.closePath();
+            tangentCtx.stroke();
+            
+            // Ponto móvel
+            const angle = tangentT * Math.PI * 2;
+            const px = centerX + Math.cos(angle) * radius;
+            const py = centerY + Math.sin(angle) * radius * 0.6;
+            
+            tangentCtx.fillStyle = '#764ba2';
+            tangentCtx.beginPath();
+            tangentCtx.arc(px, py, 8, 0, Math.PI * 2);
+            tangentCtx.fill();
+            
+            // Vetor tangente
+            const tx = -Math.sin(angle);
+            const ty = Math.cos(angle) * 0.6;
+            const length = 60;
+            
+            tangentCtx.strokeStyle = '#ff6b6b';
+            tangentCtx.lineWidth = 3;
+            tangentCtx.beginPath();
+            tangentCtx.moveTo(px, py);
+            tangentCtx.lineTo(px + tx * length, py + ty * length);
+            tangentCtx.stroke();
+            
+            // Seta
+            const arrowSize = 10;
+            tangentCtx.fillStyle = '#ff6b6b';
+            tangentCtx.beginPath();
+            tangentCtx.moveTo(px + tx * length, py + ty * length);
+            tangentCtx.lineTo(px + tx * (length - arrowSize) - ty * arrowSize * 0.5, 
+                            py + ty * (length - arrowSize) + tx * arrowSize * 0.5);
+            tangentCtx.lineTo(px + tx * (length - arrowSize) + ty * arrowSize * 0.5, 
+                            py + ty * (length - arrowSize) - tx * arrowSize * 0.5);
+            tangentCtx.closePath();
+            tangentCtx.fill();
+            
+            // Atualiza displays
+            document.getElementById('tangentT').textContent = tangentT.toFixed(2);
+            document.getElementById('tangentAngle').textContent = Math.round(angle * 180 / Math.PI) + '°';
+            document.getElementById('tangentX').textContent = Math.round(px);
+            document.getElementById('tangentY').textContent = Math.round(py);
+            
+            tangentT += 0.003;
+            if (tangentT > 1) tangentT = 0;
+            
+            requestAnimationFrame(drawTangent);
+        }
+        drawTangent();
+
+        // Letra com Bézier
+        const letterCanvas = document.getElementById('letterCanvas');
+        const letterCtx = letterCanvas.getContext('2d');
+
+        function drawBezierLetter() {
+            letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
+            
+            const centerX = letterCanvas.width / 2;
+            const centerY = letterCanvas.height / 2;
+            
+            // Letra A simplificada com curvas Bézier
+            const curves = [
+                {p0: [centerX-80, centerY+100], p1: [centerX-60, centerY-100], p2: [centerX-20, centerY-100], p3: [centerX, centerY+100]},
+                {p0: [centerX, centerY+100], p1: [centerX+20, centerY-100], p2: [centerX+60, centerY-100], p3: [centerX+80, centerY+100]},
+                {p0: [centerX-40, centerY+20], p1: [centerX-20, centerY+20], p2: [centerX+20, centerY+20], p3: [centerX+40, centerY+20]}
+            ];
+            
+            // Atualiza parâmetros
+            document.getElementById('numCurves').textContent = curves.length;
+            document.getElementById('numPoints').textContent = curves.length * 4;
+            if (showPoints || showTangents || showEquations) {
+                document.getElementById('bezierParams').style.display = 'block';
+            } else {
+                document.getElementById('bezierParams').style.display = 'none';
+            }
+            
+            curves.forEach(curve => {
+                letterCtx.strokeStyle = '#667eea';
+                letterCtx.lineWidth = 4;
+                letterCtx.beginPath();
+                letterCtx.moveTo(curve.p0[0], curve.p0[1]);
+                letterCtx.bezierCurveTo(
+                    curve.p1[0], curve.p1[1],
+                    curve.p2[0], curve.p2[1],
+                    curve.p3[0], curve.p3[1]
+                );
+                letterCtx.stroke();
+                
+                if (showPoints) {
+                    [curve.p0, curve.p1, curve.p2, curve.p3].forEach((p, i) => {
+                        letterCtx.fillStyle = i === 0 || i === 3 ? '#764ba2' : '#ff6b6b';
+                        letterCtx.beginPath();
+                        letterCtx.arc(p[0], p[1], 6, 0, Math.PI * 2);
+                        letterCtx.fill();
+                    });
+                    
+                    letterCtx.strokeStyle = 'rgba(255,107,107,0.3)';
+                    letterCtx.lineWidth = 1;
+                    letterCtx.beginPath();
+                    letterCtx.moveTo(curve.p0[0], curve.p0[1]);
+                    letterCtx.lineTo(curve.p1[0], curve.p1[1]);
+                    letterCtx.lineTo(curve.p2[0], curve.p2[1]);
+                    letterCtx.lineTo(curve.p3[0], curve.p3[1]);
+                    letterCtx.stroke();
+                }
+                
+                if (showTangents) {
+                    const t = 0.5;
+                    const x = Math.pow(1-t, 3)*curve.p0[0] + 3*Math.pow(1-t, 2)*t*curve.p1[0] + 
+                             3*(1-t)*Math.pow(t, 2)*curve.p2[0] + Math.pow(t, 3)*curve.p3[0];
+                    const y = Math.pow(1-t, 3)*curve.p0[1] + 3*Math.pow(1-t, 2)*t*curve.p1[1] + 
+                             3*(1-t)*Math.pow(t, 2)*curve.p2[1] + Math.pow(t, 3)*curve.p3[1];
+                    
+                    letterCtx.strokeStyle = '#4ecdc4';
+                    letterCtx.lineWidth = 2;
+                    letterCtx.beginPath();
+                    letterCtx.moveTo(x - 30, y);
+                    letterCtx.lineTo(x + 30, y);
+                    letterCtx.stroke();
+                }
+            });
+            
+            if (showEquations) {
+                letterCtx.fillStyle = 'white';
+                letterCtx.font = '14px monospace';
+                letterCtx.fillText('B(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃', 20, 30);
+            }
+        }
+        drawBezierLetter();
+
+        // Galeria
+        const galleryCanvas = document.getElementById('galleryCanvas');
+        const galleryCtx = galleryCanvas.getContext('2d');
+        
+        const letterData = {
+            'A': {complexity: 'Média', size: '~2KB', render: '<1ms'},
+            'B': {complexity: 'Alta', size: '~3KB', render: '<1ms'},
+            'S': {complexity: 'Muito Alta', size: '~4KB', render: '1ms'},
+            'g': {complexity: 'Alta', size: '~3.5KB', render: '<1ms'},
+            'R': {complexity: 'Média', size: '~2.5KB', render: '<1ms'},
+            'Q': {complexity: 'Alta', size: '~3KB', render: '<1ms'}
+        };
+
+        function selectLetter(letter, element) {
+            currentLetter = letter;
+            
+            // Remove active de todos
+            document.querySelectorAll('.letter-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            // Adiciona active no clicado
+            element.classList.add('active');
+            
+            // Atualiza informações
+            document.getElementById('selectedLetter').textContent = letter;
+            document.getElementById('letterComplexity').textContent = letterData[letter].complexity;
+            document.getElementById('letterSize').textContent = letterData[letter].size;
+            document.getElementById('renderTime').textContent = letterData[letter].render;
+            
+            drawGalleryLetter();
+        }
+
+        function drawGalleryLetter() {
+            galleryCtx.clearRect(0, 0, galleryCanvas.width, galleryCanvas.height);
+            galleryCtx.fillStyle = '#667eea';
+            galleryCtx.font = 'bold 300px Arial';
+            galleryCtx.textAlign = 'center';
+            galleryCtx.textBaseline = 'middle';
+            galleryCtx.fillText(currentLetter, galleryCanvas.width/2, galleryCanvas.height/2);
+        }
+        drawGalleryLetter();
+
+        // Zoom
+        const zoomCanvas = document.getElementById('zoomCanvas');
+        const zoomCtx = zoomCanvas.getContext('2d');
+
+        zoomCanvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            zoomLevel += e.deltaY * -0.001;
+            zoomLevel = Math.max(1, Math.min(16, zoomLevel));
+            
+            const percent = Math.round(zoomLevel * 100);
+            document.getElementById('zoomLevel').textContent = percent + '%';
+            document.getElementById('zoomPercent').textContent = percent + '%';
+            document.getElementById('zoomScale').textContent = zoomLevel.toFixed(1) + 'x';
+            document.getElementById('pointsCalc').textContent = Math.round(100 * zoomLevel);
+            
+            drawZoom();
+        });
+
+        function drawZoom() {
+            zoomCtx.clearRect(0, 0, zoomCanvas.width, zoomCanvas.height);
+            zoomCtx.save();
+            zoomCtx.translate(zoomCanvas.width/2, zoomCanvas.height/2);
+            zoomCtx.scale(zoomLevel, zoomLevel);
+            zoomCtx.translate(-zoomCanvas.width/2, -zoomCanvas.height/2);
+            
+            const centerX = zoomCanvas.width / 2;
+            const centerY = zoomCanvas.height / 2;
+            
+            zoomCtx.strokeStyle = '#667eea';
+            zoomCtx.lineWidth = 3 / zoomLevel;
+            zoomCtx.beginPath();
+            zoomCtx.moveTo(centerX - 50, centerY - 50);
+            zoomCtx.bezierCurveTo(centerX - 50, centerY - 100, centerX + 50, centerY - 100, centerX + 50, centerY - 50);
+            zoomCtx.bezierCurveTo(centerX + 50, centerY, centerX - 50, centerY, centerX - 50, centerY + 50);
+            zoomCtx.bezierCurveTo(centerX - 50, centerY + 100, centerX + 50, centerY + 100, centerX + 50, centerY + 50);
+            zoomCtx.stroke();
+            
+            zoomCtx.restore();
+        }
+        drawZoom();
+
+        // Comparação
+        const rasterCanvas = document.getElementById('rasterCanvas');
+        const rasterCtx = rasterCanvas.getContext('2d');
+        const vectorCanvas = document.getElementById('vectorCanvas');
+        const vectorCtx = vectorCanvas.getContext('2d');
+
+        function drawComparison() {
+            // Raster
+            rasterCtx.fillStyle = '#667eea';
+            rasterCtx.font = 'bold 60px Arial';
+            rasterCtx.textAlign = 'center';
+            rasterCtx.fillText('A', rasterCanvas.width/2, rasterCanvas.height/2);
+            
+            const imageData = rasterCtx.getImageData(0, 0, rasterCanvas.width, rasterCanvas.height);
+            rasterCtx.clearRect(0, 0, rasterCanvas.width, rasterCanvas.height);
+            rasterCtx.imageSmoothingEnabled = false;
+            createImageBitmap(imageData).then(bitmap => {
+                rasterCtx.drawImage(bitmap, 0, 0, rasterCanvas.width * 2, rasterCanvas.height * 2);
+            });
+            
+            // Vetor
+            vectorCtx.clearRect(0, 0, vectorCanvas.width, vectorCanvas.height);
+            vectorCtx.save();
+            vectorCtx.scale(2, 2);
+            vectorCtx.fillStyle = '#667eea';
+            vectorCtx.font = 'bold 60px Arial';
+            vectorCtx.textAlign = 'center';
+            vectorCtx.fillText('A', vectorCanvas.width/4, vectorCanvas.height/4);
+            vectorCtx.restore();
+            
+            document.getElementById('comparisonZoom').textContent = '200%';
+        }
+        drawComparison();
+
+        // Funções de controle
+        function togglePoints() {
+            showPoints = !showPoints;
+            document.querySelectorAll('.control-btn')[0].classList.toggle('active');
+            drawBezierLetter();
+        }
+
+        function toggleTangents() {
+            showTangents = !showTangents;
+            document.querySelectorAll('.control-btn')[1].classList.toggle('active');
+            drawBezierLetter();
+        }
+
+        function toggleEquations() {
+            showEquations = !showEquations;
+            document.querySelectorAll('.control-btn')[2].classList.toggle('active');
+            drawBezierLetter();
+        }
+
+        function scrollToNext() {
+            window.scrollTo({
+                top: window.innerHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // Responsivo
+        window.addEventListener('resize', () => {
+            heroCanvas.width = window.innerWidth;
+            heroCanvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html
