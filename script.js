@@ -140,9 +140,17 @@ function setFontStyle(style) {
 }
 
 function updateEquation() {
-    const slantFactor = (slant * Math.PI / 180).toFixed(2);
-    document.getElementById('equationDisplay').textContent = 
-        `x'(t) = x(t)·${widthScale.toFixed(2)} + y(t)·${slantFactor} | y'(t) = y(t)·${weightScale.toFixed(2)}`;
+    const slantInRad = slant * Math.PI / 180;
+    const tanSlant = Math.tan(slantInRad).toFixed(2);
+
+    const katexString = `x'(t) = x(t) \\cdot ${widthScale.toFixed(2)} + y(t) \\cdot ${tanSlant} \\quad | \\quad y'(t) = y(t) \\cdot ${weightScale.toFixed(2)}`;
+    
+    const element = document.getElementById('equationDisplay');
+
+    // Render the new equation using KaTeX
+    katex.render(katexString, element, {
+        throwOnError: false
+    });
 }
 
 function drawTypography() {
@@ -367,7 +375,7 @@ function selectLetter(letter, element) {
         card.classList.remove('active');
     });
     // Adiciona active no clicado
-    event.target.classList.add('active');
+    element.classList.add('active');
     
     // Atualiza informações
     document.getElementById('selectedLetter').textContent = letter;
@@ -399,6 +407,7 @@ zoomCanvas.addEventListener('wheel', (e) => {
     
     const percent = Math.round(zoomLevel * 100);
     document.getElementById('zoomLevel').textContent = percent + '%';
+    document.getElementById('zoomPercent').textContent = percent + '%';
     document.getElementById('zoomScale').textContent = zoomLevel.toFixed(1) + 'x';
     document.getElementById('pointsCalc').textContent = Math.round(100 * zoomLevel);
     
@@ -561,14 +570,22 @@ document.querySelectorAll('.reveal').forEach(el => {
     observer.observe(el);
 });
 
+// renderMathInElement(document.body, {
+//     delimiters: [
+//         {left: '$$', right: '$$', display: true},
+//         {left: '$', right: '$', display: false},
+//         {left: '\(', right: '\)', display: false},
+//         {left: '\[', right: '\]', display: true}
+//     ],
+//     throwOnError : false
+// });
+
 renderMathInElement(document.body, {
     delimiters: [
-        {left: '$$', right: '$$', display: true},
-        {left: '$', right: '$', display: false},
-        {left: '\(', right: '\)', display: false},
-        {left: '\[', right: '\]', display: true}
+        {left: '$$', right: '$$', display: true}, // Usa $$ para blocos
+        {left: '$', right: '$', display: false},   // Usa $ para inline
+        {left: '\\[', right: '\\]', display: true} // Usa \[ para blocos (opcional)
     ],
     throwOnError : false
 });
-
 lucide.createIcons();
