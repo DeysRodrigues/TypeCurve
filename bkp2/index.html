@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TypeCurve - Design &amp; Matemática</title>
+    <title>TypeCurve - Design & Matemática</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"></script>
-</head>
+    </head>
 <body>
     <section id="hero" class="section">
         <canvas id="heroCanvas"></canvas>
         <div class="hero-content reveal">
-            <span style=" font-size:larger; font-weight: 800;">Capstone: Cálculo 2</span>
-            <h1>TypeCurve</h1> 
+            <h1>TypeCurve</h1>
             <p>A matemática elegante por trás da tipografia digital</p>
-            <button class="btn" onclick="scrollToNext()">Explorar</button>
+            <button class="btn" onclick="scrollToNext()">Iniciar Experiência</button>
         </div>
     </section>
 
-    <section id="parametric-section" class="section reveal">
+    <section class="section reveal">
         <div class="content-box glass-card">
             <div class="layout-container">
                 <div class="left-column">
@@ -31,8 +27,8 @@
                         Em Cálculo 2, curvas são descritas por <strong>funções paramétricas</strong>. Designers usam essa matemática para interpolar estilos sem redesenhar a letra.
                     </p>
                     <div class="formula">
-                        $$x'(t) = x(t) \cdot \text{largura} + y(t) \cdot \text{inclinação}$$ 
-                        $$y'(t) = y(t) \cdot \text{peso}$$ 
+                        <span class="var">x'(t)</span> = x(t) · largura + y(t) · inclinação<br>
+                        <span class="var">y'(t)</span> = y(t) · peso
                     </div>
                     
                     <div class="controls-wrapper">
@@ -86,7 +82,7 @@
                     </div>
                     
                     <p class="info-tip">
-                         <strong>NOTA:</strong> Tecnologias como OpenType Variations usam exatamente esses eixos de interpolação para gerar milhares de estilos a partir de um único arquivo.
+                         <strong>Variable Fonts:</strong> Tecnologias como OpenType Variations usam exatamente esses eixos de interpolação para gerar milhares de estilos a partir de um único arquivo.
                     </p>
                 </div>
                 <div class="right-column">
@@ -97,9 +93,9 @@
         </div>
     </section>
 
-    <section id="tangent-section" class="section reveal">
+    <section class="section reveal">
         <div class="content-box glass-card">
-            <h2>Curvatura e Vetor Tangente</h2>
+            <h2>Curvatura & Tangente</h2>
             <p class="intro-text">
                 O <strong>vetor tangente</strong> T(t) revela a direção instantânea da curva. A suavidade de uma fonte depende da continuidade desses vetores nas junções.
             </p>
@@ -125,14 +121,14 @@
         </div>
     </section>
 
-    <section id="bezier-section" class="section reveal">
+    <section class="section reveal">
         <div class="content-box glass-card">
             <h2>Anatomia de Bézier</h2>
             <p class="intro-text">
                 Bézier Cúbica: 4 pontos definem a magia. 2 âncoras fixam a posição, 2 controles definem a tensão da curva.
             </p>
             <div class="formula">
-                $$B(t) = (1-t)^3P_0 + 3(1-t)^2tP_1 + 3(1-t)t^2P_2 + t^3P_3$$ 
+                B(t) = (1-t)³P₀ + 3(1-t)²tP₁ + 3(1-t)t²P₂ + t³P₃
             </div>
             
             <div class="controls centered">
@@ -162,9 +158,9 @@
         </div>
     </section>
 
-    <section id="gallery-section" class="section reveal">
+    <section class="section reveal">
         <div class="content-box glass-card">
-            <h2>Como as Letras são Feitas</h2>
+            <h2>Complexidade dos Glifos</h2>
             <p class="intro-text">
                 Letras com curvas orgânicas (S, g, Q) exigem mais processamento matemático que letras ortogonais (I, L, T).
             </p>
@@ -207,7 +203,7 @@
         </div>
     </section>
 
-    <section id="zoom-section" class="section reveal">
+    <section class="section reveal">
         <div class="content-box glass-card">
             <div class="header-with-badge">
                 <h2>Resolução Infinita</h2>
@@ -219,21 +215,13 @@
             
             <div class="params-display compact">
                 <div class="params-grid">
-                    <!-- <div class="param-item">
-                        <span class="param-label">Nível de zoom:</span>
-                        <span class="param-value highlight" id="zoomPercent">100%</span>
-                    </div> -->
                     <div class="param-item">
-                        <span class="param-label">Escala atual:</span>
+                        <span class="param-label">Escala</span>
                         <span class="param-value" id="zoomScale">1.0x</span>
                     </div>
                     <div class="param-item">
                         <span class="param-label">Pontos Renderizados</span>
                         <span class="param-value" id="pointsCalc">100</span>
-                    </div>
-                    <div class="param-item">
-                        <span class="param-label">Qualidade:</span>
-                        <span class="param-value highlight">Perfeita</span>
                     </div>
                 </div>
             </div>
@@ -242,16 +230,12 @@
         </div>
     </section>
 
-    <section id="comparison-section" class="section reveal">
+    <section class="section reveal">
         <div class="content-box glass-card">
-            <h2>PDFs e Fontes Não Perdem Qualidade</h2>
-            <p class="intro-text">
-                Compare os dois métodos de representação gráfica. À esquerda, uma imagem <strong>raster</strong> 
-                (baseada em pixels). À direita, a mesma letra em formato <strong>vetorial</strong> (baseada em equações).
-            </p>
+            <h2>Vetor vs. Raster</h2>
             <div class="formula">
-                $$\text{Raster: array de pixels } [R,G,B,A] \times \text{largura} \times \text{altura}$$
-                $$\text{Vetor: lista de equações de Bézier } \{P_0, P_1, P_2, P_3\}$$
+                <span class="var">Raster:</span> Matriz fixa de pixels [R,G,B,A]<br>
+                <span class="var">Vetor:</span> Instruções matemáticas escaláveis
             </div>
             
             <div class="params-display">
@@ -289,108 +273,25 @@
         </div>
     </section>
 
-        <section class="section footer-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-
-            <div class="content-box glass-card" style="text-align: center;">
-
-                <h2 style="background: none; -webkit-text-fill-color: white; font-size: 3.5rem;">Matemática é Arte</h2>
-
-                <p style="font-size: 1.5rem; margin: 2rem 0; line-height: 1.6;">
-
-                    Cada letra que você lê é uma obra-prima de cálculo e geometria. 
-
-                    A beleza da tipografia vive na precisão matemática das curvas de Bézier.
-
-                </p>
-
-                <div style="background: rgba(0,0,0,0.2); padding: 2rem; border-radius: 15px; margin: 2rem 0;">
-
-                    <p style="font-size: 1.2rem; margin-bottom: 1rem;">
-
-                        <strong>Conceitos aprendidos:</strong>
-
-                    </p>
-
-                    <p style="font-size: 1.1rem; line-height: 1.8;">
-
-                        &bull; Curvas paramétricas x(t), y(t)<br>
-
-                        &bull; Vetores tangentes e derivadas<br>
-
-                        &bull; Curvas de Bézier cúbicas<br>
-
-                        &bull; Gráficos vetoriais vs raster<br>
-
-                        &bull; Aplicações práticas em tipografia digital
-
-                    </p>
-
-                </div>
-
-                <button class="btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑ Voltar ao Início</button>
-
+    <section class="section footer-section">
+        <div class="content-box glass-card text-center">
+            <h2 class="gradient-text">Matemática é Arte</h2>
+            <p class="outro-text">
+                A beleza da tipografia vive na precisão dos cálculos.
+            </p>
+            <div class="summary-box">
+                <p><strong>Conceitos Explorados:</strong></p>
+                <ul class="concept-list">
+                    <li>&bull; Curvas Paramétricas</li>
+                    <li>&bull; Derivadas e Tangentes</li>
+                    <li>&bull; Polinômios de Bernstein (Bézier)</li>
+                    <li>&bull; Renderização Vetorial</li>
+                </ul>
             </div>
+            <button class="btn btn-primary" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑ Voltar ao Topo</button>
+        </div>
+    </section>
 
-        </section>
-
-    
-
-        <section class="section">
-
-            <div class="content-box glass-card">
-
-                <h2>Onde a Matemática Encontra o Mundo Real</h2>
-
-                <p class="intro-text">
-
-                    As curvas de Bézier e os gráficos vetoriais não são apenas conceitos abstratos. Eles são a base de softwares de design que milhões de profissionais usam todos os dias para criar logotipos, ilustrações e interfaces incríveis.
-
-                </p>
-
-                <div class="app-grid">
-
-                    <div class="app-card">
-
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/af/Adobe_Photoshop_CC_icon.svg" alt="Photoshop Logo" class="app-logo">
-
-                        <h3>Adobe Photoshop</h3>
-
-                        <p>Embora conhecido pela edição de fotos (raster), o Photoshop possui um conjunto robusto de ferramentas vetoriais. As "Pen tools" e "Shape tools" usam curvas de Bézier para criar paths precisos e escaláveis, essenciais para máscaras, recortes e design de logos.</p>
-
-                    </div>
-
-                
-
-                    <div class="app-card">
-
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Inkscape_Logo.svg" alt="Inkscape Logo" class="app-logo">
-
-                        <h3>Inkscape</h3>
-
-                        <p>Um poderoso editor de gráficos vetoriais de código aberto. O Inkscape utiliza o padrão SVG (Scalable Vector Graphics) como seu formato nativo. Tudo no Inkscape é uma curva de Bézier, desde a criação de logos e ícones até diagramas técnicos complexos.</p>
-
-                    </div>
-
-                    <div class="app-card">
-
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/Figma-logo.svg" alt="Figma Logo" class="app-logo">
-
-                        <h3>Figma</h3>
-
-                        <p>A ferramenta de design de interface líder de mercado. O Figma é totalmente baseado em vetores, o que permite que designers criem interfaces de usuário (UI) que se adaptam a qualquer tamanho de tela, do relógio ao monitor 4K, com perfeição matemática.</p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-    
-
-        <script src="script.js"></script>
-
-    </body>
-
-    </html>
+    <script src="script.js"></script>
+</body>
+</html>
